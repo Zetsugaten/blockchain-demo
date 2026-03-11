@@ -38,25 +38,34 @@ Abra `http://localhost:5173` — celulares na mesma rede Wi-Fi podem acessar via
 
 ## ☁️ Deploy em Produção
 
-### 1. Backend → [Railway](https://railway.app)
+### 1. Backend → [Render](https://render.com) *(gratuito)*
 
-1. Crie um projeto no Railway → **Deploy from GitHub**
-2. Selecione a pasta `backend/` como Root Directory
-3. Adicione a variável de ambiente:
+1. Acesse [render.com](https://render.com) → **New → Web Service**
+2. Conecte o repositório GitHub `blockchain-demo`
+3. Configure:
+   - **Root Directory:** `backend`
+   - **Build Command:** `npm install`
+   - **Start Command:** `node server.js`
+   - **Instance Type:** Free
+4. Em **Environment Variables**, adicione:
    ```
    FRONTEND_URL=https://seu-projeto.vercel.app
    ```
-4. Copie a URL gerada (ex: `https://blockchain-demo.railway.app`)
+5. Clique em **Create Web Service** e copie a URL gerada (ex: `https://blockchain-demo.onrender.com`)
 
-### 2. Frontend → [Vercel](https://vercel.com)
+> **Dica apresentação:** Abra a URL do Render 2-3 min antes de apresentar para o servidor "acordar" (plano gratuito dorme após 15 min sem uso).
 
-1. Importe o repositório no Vercel
-2. Root Directory: `frontend/`
-3. Adicione a variável de ambiente:
+### 2. Frontend → [Vercel](https://vercel.com) *(gratuito)*
+
+1. Acesse [vercel.com/new](https://vercel.com/new) → importe `blockchain-demo`
+2. **Root Directory:** `frontend`
+3. Em **Environment Variables**, adicione:
    ```
-   VITE_BACKEND_URL=https://blockchain-demo.railway.app
+   VITE_BACKEND_URL=https://blockchain-demo.onrender.com
    ```
-4. Deploy!
+4. Clique em **Deploy** ✔
+
+> Após obter as duas URLs, atualize `FRONTEND_URL` no Render e `VITE_BACKEND_URL` no Vercel com os valores reais e faça Redeploy no Vercel.
 
 ## 🎬 Roteiro de Apresentação
 
