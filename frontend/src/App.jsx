@@ -139,13 +139,52 @@ function StatsRow() {
   );
 }
 
+// ─── How Blockchain Works explanation ────────────────────────────────────────
+function HowItWorks() {
+  const { stats } = useBlockchain();
+  const valid = stats?.validation?.valid ?? true;
+
+  const steps = [
+    { icon: '📄', color: 'var(--amber)', title: '1. Dado entra', desc: 'Um arquivo é modificado por um dispositivo' },
+    { icon: '🔢', color: 'var(--indigo-l)', title: '2. SHA-256 calcula o Hash', desc: 'O conteúdo vira uma "impressão digital" única de 64 caracteres' },
+    { icon: '🔗', color: 'var(--cyan)', title: '3. Bloco é encadeado', desc: 'O hash do bloco anterior é incluído no novo bloco' },
+    { icon: '🔒', color: 'var(--emerald)', title: '4. Imutável', desc: 'Qualquer alteração muda o hash e quebra todos os blocos seguintes' },
+  ];
+
+  return (
+    <div className="card">
+      <div className="card-header">
+        <div className="card-title">
+          <span className="icon" style={{ color: 'var(--purple)' }}>💡</span>
+          Como Funciona a Blockchain
+        </div>
+        <span className={`pill ${valid ? 'pill-valid' : 'pill-invalid'}`} style={{ fontSize: '.65rem' }}>
+          {valid ? '🔒 Íntegra' : '🚨 Corrompida'}
+        </span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 0, borderBottom: '1px solid var(--border)' }}>
+        {steps.map((s, i) => (
+          <div key={i} style={{
+            padding: '1rem .9rem',
+            borderRight: i < 3 ? '1px solid var(--border)' : 'none',
+            display: 'flex', flexDirection: 'column', gap: 6
+          }}>
+            <div style={{ fontSize: '1.6rem', filter: `drop-shadow(0 0 6px ${s.color})` }}>{s.icon}</div>
+            <div style={{ fontSize: '.75rem', fontWeight: 700, color: s.color }}>{s.title}</div>
+            <div style={{ fontSize: '.68rem', color: 'var(--t2)', lineHeight: 1.4 }}>{s.desc}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Blockchain Visualizer ───────────────────────────────────────────────────
 function BlockchainVisualizer() {
-  const { chain, stats, tamperBlock, myName } = useBlockchain();
+  const { chain, stats, tamperBlock } = useBlockchain();
   const [selected, setSelected] = useState(null);
   const [newIdx, setNewIdx] = useState(null);
 
-  // Flash new block
   useEffect(() => {
     if (chain.length > 1) {
       const last = chain[chain.length - 1];
@@ -167,12 +206,12 @@ function BlockchainVisualizer() {
           <span className="icon" style={{ color: 'var(--indigo)' }}>⛓️</span>
           Cadeia de Blocos
           <span style={{ fontSize: '0.65rem', color: 'var(--t3)', background: 'var(--bg-card2)', padding: '2px 7px', borderRadius: 4, border: '1px solid var(--border)', fontFamily: 'var(--mono)' }}>
-            SHA-256
+            SHA-256 · clique em um bloco para ver os detalhes
           </span>
         </div>
         {validation && !validation.valid && (
           <span style={{ fontSize: '0.72rem', color: 'var(--rose)', display: 'flex', alignItems: 'center', gap: 4 }}>
-            ⚠️ {validation.errors?.length} erro(s)
+            ⚠️ {validation.errors?.length} elo(s) quebrado(s)
           </span>
         )}
       </div>
@@ -194,8 +233,14 @@ function BlockchainVisualizer() {
               return (
                 <div key={block.index} className="chain-item">
                   {i > 0 && (
-                    <div className={`chain-arrow ${chainBroken ? 'broken' : ''}`} title={chainBroken ? '⚠️ Cadeia quebrada!' : 'Link válido'}>
-                      {chainBroken ? '✗' : '→'}
+                    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'0 2px', flexShrink:0 }}>
+                      <div className={`chain-arrow ${chainBroken ? 'broken' : ''}`}
+                        title={chainBroken ? '⚠️ Hash anterior não bate — cadeia quebrada!' : '✅ Hash anterior confere — elo válido'}>
+                        {chainBroken ? '✗' : '→'}
+                      </div>
+                      {chainBroken && (
+                        <div style={{ fontSize:'.52rem', color:'var(--rose)', fontWeight:700, marginTop:2, whiteSpace:'nowrap' }}>QUEBRADO</div>
+                      )}
                     </div>
                   )}
                   <div
@@ -203,20 +248,28 @@ function BlockchainVisualizer() {
                     onClick={() => setSelected(selected?.index === block.index ? null : block)}
                   >
                     <div className={`block-head ${isGenesis ? 'block-genesis-head' : ''}`}>
-                      <span className="block-idx">#{block.index}</span>
+                      <span className="block-idx">Bloco #{block.index}</span>
                       {isGenesis ? <span className="block-tag tag-genesis">GENESIS</span>
-                        : isTampered ? <span className="block-tag tag-tampered">ADULTERADO</span>
-                        : isNew ? <span className="block-tag tag-new">NOVO!</span>
-                        : <span className="block-tag tag-ok">{block.data?.action || 'OK'}</span>}
+                        : isTampered ? <span className="block-tag tag-tampered">⚠ ADULTERADO</span>
+                        : isNew ? <span className="block-tag tag-new">✨ NOVO</span>
+                        : <span className="block-tag tag-ok">{block.data?.action || '✓ OK'}</span>}
                     </div>
                     <div className="block-body">
-                      <div className="hash-lbl">Hash</div>
-                      <div className={`hash-val ${isTampered ? 'red' : ''}`}>{block.hash}</div>
-                      <div className="hash-lbl">Hash Anterior</div>
-                      <div className="prev-hash">{block.previousHash || '—'}</div>
+                      <div className="hash-lbl" title="Impressão digital única deste bloco">🔑 Hash (ID do Bloco)</div>
+                      <div className={`hash-val ${isTampered ? 'red' : ''}`}>{block.hash.slice(0,32)}…</div>
+
+                      <div className="hash-lbl" style={{ marginTop:5 }} title="Deve ser igual ao Hash do bloco anterior">
+                        🔗 Encadeado com bloco #{block.index - 1 >= 0 ? block.index - 1 : '—'}
+                      </div>
+                      <div className="prev-hash" style={{ color: chainBroken ? 'var(--rose)' : undefined }}>
+                        {block.previousHash === '0' ? '— (origem)' : block.previousHash.slice(0,28) + '…'}
+                      </div>
+
                       <div className="block-footer">
-                        <span className="block-by">{isGenesis ? '⚙️ Sistema' : `📡 ${block.data?.modifiedBy?.split(' ')[0] || '?'}`}</span>
-                        <span className="block-nonce">n:{block.nonce}</span>
+                        <span className="block-by">
+                          {isGenesis ? '⚙️ Sistema' : `📡 ${block.data?.modifiedBy || '?'}`}
+                        </span>
+                        <span className="block-nonce" title="Número usado na mineração (Proof of Work)">PoW: {block.nonce}</span>
                       </div>
                     </div>
                   </div>
@@ -230,39 +283,49 @@ function BlockchainVisualizer() {
       {selected && (
         <div style={{ borderTop: '1px solid var(--border)' }}>
           <div className="card-header" style={{ borderBottom: 'none' }}>
-            <div className="card-title" style={{ fontSize: '.78rem' }}>🔍 Bloco #{selected.index}</div>
+            <div className="card-title" style={{ fontSize: '.78rem' }}>🔍 Inspecionando Bloco #{selected.index}</div>
             <div className="card-actions">
               {selected.index > 0 && (
                 <button className="btn btn-danger btn-sm" onClick={() => tamperBlock(selected.index)}>
-                  💥 Adulterar Bloco
+                  💥 Simular Adulteração
                 </button>
               )}
-              <button className="btn btn-ghost btn-sm" onClick={() => setSelected(null)}>✕</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setSelected(null)}>✕ Fechar</button>
             </div>
           </div>
           <div className="detail-body">
             <div className="detail-row">
-              <div className="detail-lbl">Hash Completo</div>
-              <div className="detail-val" style={{ color: tamperedIndices.has(selected.index) ? 'var(--rose)' : 'var(--emerald)' }}>
+              <div className="detail-lbl">🔑 Hash deste bloco (impressão digital)</div>
+              <div className="detail-val" style={{ color: tamperedIndices.has(selected.index) ? 'var(--rose)' : 'var(--emerald)', fontWeight: 600 }}>
                 {chain.find(b => b.index === selected.index)?.hash}
               </div>
             </div>
+            <div className="detail-row">
+              <div className="detail-lbl">🔗 Hash do bloco anterior (elo da corrente)</div>
+              <div className="detail-val">{selected.previousHash}</div>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <div className="detail-row">
-                <div className="detail-lbl">Nonce</div>
+                <div className="detail-lbl">⛏️ Nonce (Proof of Work)</div>
                 <div className="detail-val">{selected.nonce}</div>
               </div>
               <div className="detail-row">
-                <div className="detail-lbl">Data/Hora</div>
+                <div className="detail-lbl">🕐 Registrado em</div>
                 <div className="detail-val">{new Date(selected.timestamp).toLocaleString('pt-BR')}</div>
               </div>
             </div>
-            {selected.data && (
+            {selected.data?.fileName && (
               <div className="detail-row">
-                <div className="detail-lbl">Dados do Bloco</div>
-                <div className="detail-val" style={{ whiteSpace: 'pre-wrap', maxHeight: 110, overflow: 'auto' }}>
-                  {JSON.stringify(selected.data, null, 2)}
+                <div className="detail-lbl">📁 Arquivo Registrado</div>
+                <div className="detail-val" style={{ color: 'var(--amber)' }}>
+                  {selected.data.fileName} — versão {selected.data.version}
                 </div>
+              </div>
+            )}
+            {selected.data?.fileHash && (
+              <div className="detail-row">
+                <div className="detail-lbl">🔑 Hash SHA-256 do Conteúdo do Arquivo</div>
+                <div className="detail-val">{selected.data.fileHash}</div>
               </div>
             )}
           </div>
@@ -390,8 +453,9 @@ function FileEditorModal({ file, onSave, onClose }) {
 
 // ─── Viewers Panel ────────────────────────────────────────────────────────────
 function ViewersPanel() {
-  const { viewers, myId, serverIP } = useBlockchain();
-  const frontendURL = `http://${serverIP}:5173`;
+  const { viewers, myId } = useBlockchain();
+  // Always use the current page's URL — works locally AND no Vercel/qualquer host
+  const frontendURL = window.location.origin;
 
   return (
     <div className="card">
@@ -589,6 +653,7 @@ function AppContent() {
 
       <div className="layout">
         <div className="col-left">
+          <HowItWorks />
           <BlockchainVisualizer />
           <FilesPanel />
         </div>
