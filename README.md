@@ -148,19 +148,6 @@ Acesse `http://localhost:5173`. Dispositivos na mesma rede Wi-Fi podem entrar vi
 
 ---
 
-## 🎬 Roteiro de Demonstração
-
-```
-1. Abra o app no notebook (tela principal / projetor)
-2. Peça alguém para escanear o QR Code com o celular
-3. Edite um arquivo → todos os dispositivos recebem a notificação
-4. Clique "💥 Simular Adulteração" em um bloco → alerta vermelho em todos
-5. Observe os hashes quebrados e o elo "QUEBRADO" na cadeia
-6. Clique "🔧 Restaurar Integridade" → sistema volta ao estado íntegro
-```
-
----
-
 ## 📁 Estrutura do Projeto
 
 ```
